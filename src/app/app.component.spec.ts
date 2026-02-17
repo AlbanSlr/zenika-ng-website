@@ -22,31 +22,31 @@ describe('AppComponent', () => {
   });
 
   it('should display the products', () => {
-    expect(component.products).toBeDefined();
-    expect(component.products.length).toBe(4);
-    expect(component.products[0].title).toBe('Coding the welsch');
-    expect(component.products[1].title).toBe('Coding the world');
-    expect(component.products[2].title).toBe('Duck Vador');
-    expect(component.products[3].title).toBe('Coding the snow');
+    expect(component.products()).toBeDefined();
+    expect(component.products().length).toBe(4);
+    expect(component.products()[0].title).toBe('Coding the welsch');
+    expect(component.products()[1].title).toBe('Coding the world');
+    expect(component.products()[2].title).toBe('Duck Vador');
+    expect(component.products()[3].title).toBe('Coding the snow');
   });
 
   it('should update the total when "addToBasket" class method is called', () => {
     // Class testing - directly calling the method
-    expect(component.total).toBe(0);
+    expect(component.total()).toBe(0);
 
-    component.onAddToBasket(component.products[0]); // 20€
-    expect(component.total).toBe(20);
+    component.onAddToBasket(component.products()[0]); // 20€
+    expect(component.total()).toBe(20);
 
-    component.onAddToBasket(component.products[1]); // 18€
-    expect(component.total).toBe(38);
+    component.onAddToBasket(component.products()[1]); // 18€
+    expect(component.total()).toBe(38);
 
-    component.onAddToBasket(component.products[2]); // 21€
-    expect(component.total).toBe(59);
+    component.onAddToBasket(component.products()[2]); // 21€
+    expect(component.total()).toBe(59);
   });
 
   it('should update the total when a product emits the "addToBasket" event', () => {
     // DOM testing - simulating user interaction
-    expect(component.total).toBe(0);
+    expect(component.total()).toBe(0);
 
     // Get all product card buttons
     const buttons = fixture.nativeElement.querySelectorAll('app-product-card button');
@@ -55,25 +55,27 @@ describe('AppComponent', () => {
     if (buttons.length > 0) {
       buttons[0].click();
       fixture.detectChanges();
-      expect(component.total).toBeGreaterThan(0);
+      expect(component.total()).toBeGreaterThan(0);
     }
   });
 
   it('should decrease the stock of the product added to the basket', () => {
-    const product = component.products[0];
+    const product = component.products()[0];
     const initialStock = product.stock;
 
     component.onAddToBasket(product);
 
-    expect(product.stock).toBe(initialStock - 1);
+    expect(component.products()[0].stock).toBe(initialStock - 1);
   });
 
   it('should not display products whose stock is empty', () => {
     // Set all products stock to 0 except one
-    component.products[0].stock = 0;
-    component.products[1].stock = 0;
-    component.products[2].stock = 1;
-    component.products[3].stock = 0;
+    component.products.update(products => [
+      { ...products[0], stock: 0 },
+      { ...products[1], stock: 0 },
+      { ...products[2], stock: 1 },
+      { ...products[3], stock: 0 }
+    ]);
 
     fixture.detectChanges();
 
@@ -83,7 +85,9 @@ describe('AppComponent', () => {
 
   it('should display a message when stock is completely empty', () => {
     // Set all products stock to 0
-    component.products.forEach(product => product.stock = 0);
+    component.products.update(products =>
+      products.map(p => ({ ...p, stock: 0 }))
+    );
 
     fixture.detectChanges();
 
