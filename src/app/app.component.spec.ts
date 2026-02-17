@@ -58,4 +58,41 @@ describe('AppComponent', () => {
       expect(component.total).toBeGreaterThan(0);
     }
   });
+
+  it('should decrease the stock of the product added to the basket', () => {
+    const product = component.products[0];
+    const initialStock = product.stock;
+
+    component.onAddToBasket(product);
+
+    expect(product.stock).toBe(initialStock - 1);
+  });
+
+  it('should not display products whose stock is empty', () => {
+    // Set all products stock to 0 except one
+    component.products[0].stock = 0;
+    component.products[1].stock = 0;
+    component.products[2].stock = 1;
+    component.products[3].stock = 0;
+
+    fixture.detectChanges();
+
+    const productCards = fixture.nativeElement.querySelectorAll('app-product-card');
+    expect(productCards.length).toBe(1);
+  });
+
+  it('should display a message when stock is completely empty', () => {
+    // Set all products stock to 0
+    component.products.forEach(product => product.stock = 0);
+
+    fixture.detectChanges();
+
+    const message = fixture.nativeElement.querySelector('.alert-warning');
+    expect(message).toBeTruthy();
+    expect(message.textContent).toContain('Désolé, notre stock est vide !');
+
+    // Verify no product cards are displayed
+    const productCards = fixture.nativeElement.querySelectorAll('app-product-card');
+    expect(productCards.length).toBe(0);
+  });
 });

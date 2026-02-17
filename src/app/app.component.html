@@ -25,23 +25,19 @@
 
     <h2 class="h4">Catalogue</h2>
 
+    @if (hasProductsInStock) {
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+      @for (product of products; track product.id) {
+      @if (product.stock > 0) {
       <div class="col">
-        <app-product-card [product]="products[0]" (addToBasket)="onAddToBasket($event)" />
+        <app-product-card [product]="product" (addToBasket)="onAddToBasket($event)" />
       </div>
-
-      <div class="col">
-        <app-product-card [product]="products[1]" (addToBasket)="onAddToBasket($event)" />
-      </div>
-
-      <div class="col">
-        <app-product-card [product]="products[2]" (addToBasket)="onAddToBasket($event)" />
-      </div>
-
-      <div class="col">
-        <app-product-card [product]="products[3]" (addToBasket)="onAddToBasket($event)" />
-      </div>
+      }
+      }
     </div>
+    } @else {
+    <p class="alert alert-warning">Désolé, notre stock est vide !</p>
+    }
   </main>
 </body>
 
