@@ -10,14 +10,34 @@ describe('ProductCardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ProductCardComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(ProductCardComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('product', {
+      id: 'test-id',
+      title: 'TITLE',
+      description: 'DESC',
+      photo: '/assets/tcoding-the-snow.jpg',
+      price: 20,
+      stock: 5
+    });
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should emit product when add to basket button is clicked', () => {
+    // Spy on the addToBasket output's emit method
+    spyOn(component.addToBasket, 'emit');
+
+    // Get the button and click it
+    const button = fixture.nativeElement.querySelector('button');
+    button.click();
+
+    // Verify that emit was called with the product
+    expect(component.addToBasket.emit).toHaveBeenCalledWith(component.product());
   });
 });
