@@ -1,71 +1,39 @@
-import { Component, signal, computed } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
 import { MenuComponent } from "./menu/menu.component";
 import { ProductCardComponent } from "./product-card/product-card.component";
 import { Product } from './product-card/product';
+import { CatalogService } from './catalog/catalog.service';
+import { BasketService } from './basket/basket.service';
+import { APP_TITLE } from './app.token';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, MenuComponent, ProductCardComponent],
+  imports: [MenuComponent, ProductCardComponent],
+  providers: [
+    { provide: APP_TITLE, useValue: 'Bienvenue sur Zenika Ecommerce' }
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'zenika-ng-website';
+  catalogService = inject(CatalogService);
+  basketService = inject(BasketService);
+  appTitle = inject(APP_TITLE);
 
-  // Signal pour le total
-  total = signal(0);
-
-  // Signal pour les produits
-  products = signal<Product[]>([
-    {
-      "id": "welsch",
-      "title": "Coding the welsch",
-      "description": "Tee-shirt col rond - Homme",
-      "photo": "/assets/coding-the-welsch.jpg",
-      "price": 20,
-      "stock": 2
-    },
-    {
-      "id": "world",
-      "title": "Coding the world",
-      "description": "Tee-shirt col rond - Homme",
-      "photo": "/assets/coding-the-world.jpg",
-      "price": 18,
-      "stock": 2
-    },
-    {
-      "id": "vador",
-      "title": "Duck Vador",
-      "description": "Tee-shirt col rond - Femme",
-      "photo": "/assets/coding-the-stars.jpg",
-      "price": 21,
-      "stock": 2
-    },
-    {
-      "id": "snow",
-      "title": "Coding the snow",
-      "description": "Tee-shirt col rond - Femme",
-      "photo": "/assets/coding-the-snow.jpg",
-      "price": 19,
-      "stock": 2
-    }
-  ]);
-
-  // Computed signal - recalculé automatiquement quand products change
-  hasProductsInStock = computed(() => {
-    return this.products().some(product => product.stock > 0);
-  });
+  // Use services instead of local properties
+  products = this.catalogService.products;
+  hasProductsInStock = this.catalogService.hasProductsInStock;
+  total = this.basketService.total;
 
   onAddToBasket(product: Product) {
-    // Mettre à jour le signal total
-    this.total.update(currentTotal => currentTotal + product.price);
+    // Decrease stock in catalog
+    this.catalogService.decreaseStock(product.id);
 
-    // Mettre à jour le stock du produit dans le signal products
-    this.products.update(currentProducts => {
-      return currentProducts.map(p =>
-        p.id === product.id ? { ...p, stock: p.stock - 1 } : p
-      );
+    // Add item to basket
+    this.basketService.addItem({
+      id: product.id,
+      title: product.title,
+      price: product.price
     });
   }
 

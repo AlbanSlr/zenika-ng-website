@@ -1,19 +1,33 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { CatalogService } from './catalog/catalog.service';
+import { BasketService } from './basket/basket.service';
+import { CatalogStubService } from './catalog/catalog-stub.service';
+import { BasketStubService } from './basket/basket-stub.service';
+import { APP_TITLE } from './app.token';
 
 describe('AppComponent', () => {
   let component: AppComponent;
   let fixture: ComponentFixture<AppComponent>;
+  let catalogService: CatalogService;
+  let basketService: BasketService;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA] // Second approach - allowing unknown HTML elements
+      providers: [
+        { provide: CatalogService, useClass: CatalogStubService },
+        { provide: BasketService, useClass: BasketStubService },
+        { provide: APP_TITLE, useValue: 'Zenika Ecommerce' }
+      ],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppComponent);
     component = fixture.componentInstance;
+    catalogService = TestBed.inject(CatalogService);
+    basketService = TestBed.inject(BasketService);
     fixture.detectChanges();
   });
 
@@ -23,71 +37,34 @@ describe('AppComponent', () => {
 
   it('should display the products', () => {
     expect(component.products()).toBeDefined();
-    expect(component.products().length).toBe(4);
-    expect(component.products()[0].title).toBe('Coding the welsch');
-    expect(component.products()[1].title).toBe('Coding the world');
-    expect(component.products()[2].title).toBe('Duck Vador');
-    expect(component.products()[3].title).toBe('Coding the snow');
+    expect(component.products().length).toBe(2);
+    expect(component.products()[0].title).toBe('Test Product 1');
+    expect(component.products()[1].title).toBe('Test Product 2');
   });
 
-  it('should update the total when "addToBasket" class method is called', () => {
-    // Class testing - directly calling the method
-    expect(component.total()).toBe(0);
 
-    component.onAddToBasket(component.products()[0]); // 20€
-    expect(component.total()).toBe(20);
-
-    component.onAddToBasket(component.products()[1]); // 18€
-    expect(component.total()).toBe(38);
-
-    component.onAddToBasket(component.products()[2]); // 21€
-    expect(component.total()).toBe(59);
-  });
-
-  it('should update the total when a product emits the "addToBasket" event', () => {
-    // DOM testing - simulating user interaction
-    expect(component.total()).toBe(0);
-
-    // Get all product card buttons
-    const buttons = fixture.nativeElement.querySelectorAll('app-product-card button');
-
-    // Simulate click on first product button
-    if (buttons.length > 0) {
-      buttons[0].click();
-      fixture.detectChanges();
-      expect(component.total()).toBeGreaterThan(0);
-    }
-  });
-
-  it('should decrease the stock of the product added to the basket', () => {
-    const product = component.products()[0];
-    const initialStock = product.stock;
-
-    component.onAddToBasket(product);
-
-    expect(component.products()[0].stock).toBe(initialStock - 1);
-  });
 
   it('should not display products whose stock is empty', () => {
-    // Set all products stock to 0 except one
-    component.products.update(products => [
-      { ...products[0], stock: 0 },
-      { ...products[1], stock: 0 },
-      { ...products[2], stock: 1 },
-      { ...products[3], stock: 0 }
-    ]);
+    // Initially should have 2 products
+    fixture.detectChanges();
+    let productCards = fixture.nativeElement.querySelectorAll('app-product-card');
+    expect(productCards.length).toBe(2);
+
+    // Decrease stock of first product to 0
+    catalogService.decreaseStock('test-1');
+    catalogService.decreaseStock('test-1');
 
     fixture.detectChanges();
 
-    const productCards = fixture.nativeElement.querySelectorAll('app-product-card');
+    productCards = fixture.nativeElement.querySelectorAll('app-product-card');
     expect(productCards.length).toBe(1);
   });
 
   it('should display a message when stock is completely empty', () => {
-    // Set all products stock to 0
-    component.products.update(products =>
-      products.map(p => ({ ...p, stock: 0 }))
-    );
+    // Decrease all stock to 0
+    catalogService.decreaseStock('test-1');
+    catalogService.decreaseStock('test-1');
+    catalogService.decreaseStock('test-2');
 
     fixture.detectChanges();
 
@@ -98,5 +75,27 @@ describe('AppComponent', () => {
     // Verify no product cards are displayed
     const productCards = fixture.nativeElement.querySelectorAll('app-product-card');
     expect(productCards.length).toBe(0);
+  });
+
+  it('should call "CatalogService.decreaseStock" and "BasketService.addItem" methods when a product is added to the basket', () => {
+    const product = component.products()[0];
+
+    // Spy on service methods
+    spyOn(catalogService, 'decreaseStock');
+    spyOn(basketService, 'addItem');
+
+    component.onAddToBasket(product);
+
+    expect(catalogService.decreaseStock).toHaveBeenCalledWith(product.id);
+    expect(basketService.addItem).toHaveBeenCalledWith({
+      id: product.id,
+      title: product.title,
+      price: product.price
+    });
+  });
+
+  it('should display the app title', () => {
+    const headerElement = fixture.nativeElement.querySelector('h1');
+    expect(headerElement.textContent).toContain('Zenika Ecommerce');
   });
 });
