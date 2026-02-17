@@ -40,4 +40,36 @@ describe('ProductCardComponent', () => {
     // Verify that emit was called with the product
     expect(component.addToBasket.emit).toHaveBeenCalledWith(component.product());
   });
+
+  it('should not add the "text-bg-warning" className when stock is greater than 1', () => {
+    // Set stock to 2
+    fixture.componentRef.setInput('product', {
+      id: 'test-id',
+      title: 'TITLE',
+      description: 'DESC',
+      photo: '/assets/test.jpg',
+      price: 20,
+      stock: 2
+    });
+    fixture.detectChanges();
+
+    const cardElement = fixture.nativeElement.querySelector('.card');
+    expect(cardElement.classList.contains('text-bg-warning')).toBeFalse();
+  });
+
+  it('should add the "text-bg-warning" className when stock is equal to 1', () => {
+    // Set stock to 1
+    fixture.componentRef.setInput('product', {
+      id: 'test-id',
+      title: 'TITLE',
+      description: 'DESC',
+      photo: '/assets/test.jpg',
+      price: 20,
+      stock: 1
+    });
+    fixture.detectChanges();
+
+    const cardElement = fixture.nativeElement.querySelector('.card');
+    expect(cardElement.classList.contains('text-bg-warning')).toBeTrue();
+  });
 });
