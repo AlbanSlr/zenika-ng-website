@@ -5,9 +5,9 @@
     </div>
     <div class="card-body">
         <h3 class="h6 card-title">
-            <a class="card-link">{{ product().title }}</a>
+            <a class="card-link">{{ product().title | uppercase }}</a>
         </h3>
-        <p class="card-text">{{ product().price }} €</p>
+        <p class="card-text">{{ product().price | currency }}</p>
         <button class="btn btn-primary" (click)="onAddToBasket()">Ajoutez au panier</button>
     </div>
 </div>

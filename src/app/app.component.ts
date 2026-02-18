@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import { MenuComponent } from "./menu/menu.component";
 import { ProductCardComponent } from "./product-card/product-card.component";
 import { Product } from './product-card/product';
@@ -8,7 +9,7 @@ import { APP_TITLE } from './app.token';
 
 @Component({
   selector: 'app-root',
-  imports: [MenuComponent, ProductCardComponent],
+  imports: [MenuComponent, ProductCardComponent, CurrencyPipe],
   providers: [
     { provide: APP_TITLE, useValue: 'Bienvenue sur Zenika Ecommerce' }
   ],
